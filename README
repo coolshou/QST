@@ -19,8 +19,8 @@ that format, so it isn't implemented.
 Arranging the sources:
 
 QST depends on the QExtSerialPort library.  You must obtain the source
-for QExtSerialPort from http://code.google.com/p/qextserialport/.  Do
-not use the older version from SourceForge.  Either download the
+for QExtSerialPort from https://github.com/qextserialport/qextserialport.
+Do not use the older version from SourceForge.  Either download the
 Version 1.2 (or higher) or use git to clone the repository.
 
 Place the QExtSerialPort source directory alongside the QST directory,
