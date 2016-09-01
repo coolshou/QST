@@ -1,0 +1,16 @@
+[Desktop Entry]
+Encoding=UTF-8
+Version=1.0
+Name=QST
+Comment=Qt Serial Term
+Type=Application
+Exec=qst
+Icon=qst
+Terminal=false
+StartupNotify=true
+Categories=QT;Utility;
+;MimeType=image/gif;image/png;image/jpg;
+;Keywords=;
+
+;Type=Link
+;URL=/usr/share/applications/thunderbird.desktop

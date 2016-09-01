@@ -1,10 +1,10 @@
 <RCC>
     <qresource prefix="/img">
-        <file>GrnLEDOff.bmp</file>
-        <file>GrnLEDOn.bmp</file>
-        <file>RedLEDOff.bmp</file>
-        <file>RedLEDOn.bmp</file>
-        <file>qst-icon.png</file>
-        <file>qst-logo.png</file>
+        <file>images/GrnLEDOff.bmp</file>
+        <file>images/GrnLEDOn.bmp</file>
+        <file>images/RedLEDOff.bmp</file>
+        <file>images/RedLEDOn.bmp</file>
+        <file>images/qst-icon.png</file>
+        <file>images/qst-logo.png</file>
     </qresource>
 </RCC>
