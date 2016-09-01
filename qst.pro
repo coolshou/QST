@@ -1,7 +1,5 @@
-# -------------------------------------------------
-# Project created by QtCreator 2010-03-28T13:06:00
-# -------------------------------------------------
-include(../qextserialport/src/qextserialport.pri)
+
+include(./qextserialport/src/qextserialport.pri)
 
 greaterThan(QT_MAJOR_VERSION, 4) {
     QT       += widgets 

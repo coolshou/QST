@@ -1,0 +1,3 @@
+[submodule "qextserialport"]
+	path = qextserialport
+	url = https://github.com/qextserialport/qextserialport
