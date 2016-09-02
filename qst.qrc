@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/img">
+    <qresource prefix="/">
         <file>images/GrnLEDOff.bmp</file>
         <file>images/GrnLEDOn.bmp</file>
         <file>images/RedLEDOff.bmp</file>

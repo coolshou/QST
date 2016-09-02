@@ -9,9 +9,9 @@ QLed::QLed(QWidget *parent, ledColor clr)
 
     QString ledFile;
     if (color == red)
-        ledFile = QString(":/img/RedLEDOff.bmp");
+        ledFile = QString(":/images/RedLEDOff.bmp");
     else
-        ledFile = QString(":/img/GrnLEDOff.bmp");
+        ledFile = QString(":/images/GrnLEDOff.bmp");
 
     QPixmap pixmap(ledFile);
     setPixmap(pixmap);
@@ -28,16 +28,16 @@ void QLed::setActive(bool active)
     if (active)
     {
         if (color == red)
-            ledFile = QString(":/img/RedLEDOn.bmp");
+            ledFile = QString(":/images/RedLEDOn.bmp");
         else
-            ledFile = QString(":/img/GrnLEDOn.bmp");
+            ledFile = QString(":/images/GrnLEDOn.bmp");
     }
     else
     {
         if (color == red)
-            ledFile = QString(":/img/RedLEDOff.bmp");
+            ledFile = QString(":/images/RedLEDOff.bmp");
         else
-            ledFile = QString(":/img/GrnLEDOff.bmp");
+            ledFile = QString(":/images/GrnLEDOff.bmp");
     }
 
     QPixmap pixmap(ledFile);
