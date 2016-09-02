@@ -1,7 +1,9 @@
 TEMPLATE = app
 TARGET = qst
 
-include(./qextserialport/src/qextserialport.pri)
+include(singleapplication/singleapplication.pri)
+DEFINES += QAPPLICATION_CLASS=QApplication
+include(qextserialport/src/qextserialport.pri)
 
 unix:DEFINES += _TTY_POSIX_
 win32:DEFINES += _TTY_WIN_
@@ -25,10 +27,10 @@ greaterThan(QT_MAJOR_VERSION, 4) {
 
 SOURCES += main.cpp \
     mainwindow.cpp \
-    led.cpp
+    led.cpp 
     
 HEADERS += mainwindow.h \
-    led.h
+    led.h 
     
 FORMS += mainwindow.ui \
     config.ui \
@@ -50,5 +52,5 @@ desktop=[
 pics=[
     hint=pics
     files=images/*
-    path=/usr/share/pixmaps
+    path=/usr/share/qst/pixmaps
 ]   
