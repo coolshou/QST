@@ -7,10 +7,6 @@ Type=Application
 Exec=qst
 Icon=qst
 Terminal=false
+StartupWMClass=qst
 StartupNotify=true
-Categories=QT;Utility;
-;MimeType=image/gif;image/png;image/jpg;
-;Keywords=;
-
-;Type=Link
-;URL=/usr/share/applications/thunderbird.desktop
+Categories=QT;Development;
