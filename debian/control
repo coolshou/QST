@@ -1,0 +1,20 @@
+Source: qst
+Section: comm
+Priority: optional
+Maintainer: jimmy <jimmy@jimmy-alpha>
+Build-Depends: debhelper (>=9),  qtbase5-dev, qttools5-dev-tools
+Standards-Version: 3.9.6
+Homepage: https://github.com/coolshou/QST.git
+#Vcs-Git: git://anonscm.debian.org/collab-maint/qst.git
+#Vcs-Browser: https://anonscm.debian.org/cgit/collab-maint/qst.git
+
+Package: qst
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: QT Serial Terminal
+ mplements a terminal program using QT and the QExtSerialPort library. 
+ .
+ This terminal program mixes the input and output into one terminal
+ window, unlike other terminal programs which have separate input and
+ output windows.  The intended use of the program is to communicate with
+ embedded systems over a serial port.
