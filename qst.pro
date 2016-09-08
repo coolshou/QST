@@ -1,5 +1,15 @@
+# Package information (used for qbuild packages)
+pkg=[
+    name=qst
+    desc="Qt Serial Term"
+    license=GPL
+    version=1.0.1-1
+    maintainer="coolshou"
+]
+
 TEMPLATE = app
 TARGET = qst
+
 
 include(singleapplication/singleapplication.pri)
 DEFINES += QAPPLICATION_CLASS=QApplication
@@ -13,28 +23,30 @@ CONFIG += debug
 STRING_LANGUAGE=en_US
 LANGUAGES=en_US
 
-# Package information (used for qbuild packages)
-pkg=[
-    name=qst
-    desc="Qt Serial Term"
-    license=GPL
-    version=1.0.1-1
-    maintainer="coolshou"
-]
 greaterThan(QT_MAJOR_VERSION, 4) {
     QT       += widgets 
 }
 
 SOURCES += main.cpp \
     mainwindow.cpp \
-    led.cpp 
+    led.cpp \  
+    aboutdialog.cpp \
+    commdialog.cpp \
+    optiondialog.cpp \
+    consoleeditor.cpp
     
 HEADERS += mainwindow.h \
-    led.h 
+    led.h \ 
+    const.h \
+    aboutdialog.h \
+    commdialog.h \
+    optiondialog.h \
+    consoleeditor.h
     
 FORMS += mainwindow.ui \
-    config.ui \
-    about.ui
+    aboutdialog.ui \
+    commdialog.ui \
+    optiondialog.ui
     
 OTHER_FILES += 
 

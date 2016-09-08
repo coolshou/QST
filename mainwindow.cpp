@@ -3,17 +3,23 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QTimer>
-#include "ui_config.h"
+#include <QtDebug>
+#include <QPainter>
 #include "ui_about.h"
+
 #include "qextserialenumerator.h"
+#include "const.h"
 
 MainWindow::MainWindow(QWidget *parent)
+//Polling mode
     : QMainWindow(parent), port(0), logFile(NULL)
+//    : QMainWindow(parent), port(1), logFile(NULL)
 {
     setupUi(this);
-    textEdit->installEventFilter(this);
+    readSetting();
 
-    connect(actionConfig, SIGNAL(triggered()), this, SLOT(config()));
+    connect(actionComm, SIGNAL(triggered()), this, SLOT(configComm()));
+    connect(actionConfig, SIGNAL(triggered()), this, SLOT(configOption()));
     connect(actionStart_Stop_Comm, SIGNAL(triggered()), this, SLOT(startStopComm()));
     connect(actionAbout, SIGNAL(triggered()), this, SLOT(helpAbout()));
     connect(actionSend, SIGNAL(triggered()), this, SLOT(sendFile()));
@@ -22,18 +28,18 @@ MainWindow::MainWindow(QWidget *parent)
     connect(actionEnd_Logging, SIGNAL(triggered()), this, SLOT(endLogging()));
     connect(actionAbout_Qt, SIGNAL(triggered()), this, SLOT(aboutQt()));
 
-    baudRates[0] = BAUD300;
-    baudRates[1] = BAUD1200;
-    baudRates[2] = BAUD2400;
-    baudRates[3] = BAUD4800;
-    baudRates[4] = BAUD9600;
-    baudRates[5] = BAUD19200;
-    baudRates[6] = BAUD38400;
-    baudRates[7] = BAUD57600;
-    baudRates[8] = BAUD115200;
-    baudRateStrings.append("300");
-    baudRateStrings.append("1200");
-    baudRateStrings.append("2400");
+//    baudRates[0] = BAUD300;
+//    baudRates[1] = BAUD1200;
+//    baudRates[2] = BAUD2400;
+    baudRates[0] = BAUD4800;
+    baudRates[1] = BAUD9600;
+    baudRates[2] = BAUD19200;
+    baudRates[3] = BAUD38400;
+    baudRates[4] = BAUD57600;
+    baudRates[5] = BAUD115200;
+//    baudRateStrings.append("300");
+//    baudRateStrings.append("1200");
+//    baudRateStrings.append("2400");
     baudRateStrings.append("4800");
     baudRateStrings.append("9600");
     baudRateStrings.append("19200");
@@ -41,15 +47,16 @@ MainWindow::MainWindow(QWidget *parent)
     baudRateStrings.append("57600");
     baudRateStrings.append("115200");
 
-    connect(&timer, SIGNAL(timeout()), this, SLOT(pollSerial()));
-    timer.start(100);
+    if (! useEventDriven) {
+        //use timer to poll serial data
+        connect(&timer, SIGNAL(timeout()), this, SLOT(pollSerial()));
+        timer.start(100);
+    }
 
-    // Get settings from config file (or, god forbid, registry)
-    QSettings settings("QTapps","QST");
-    baudNdx     = settings.value("baudNdx").toInt();
-    hwFlow      = settings.value("hwflow").toBool();
-    openAtStart = settings.value("openAtStart").toBool();
-    deviceName  = settings.value("device").toString();
+    textEdit->installEventFilter(this);
+    applyOptionSetting();
+    //textEdit->setFont();
+    //textEdit->setBackgroundRole();
     if (openAtStart)
         startStopComm();
 
@@ -79,6 +86,7 @@ MainWindow::MainWindow(QWidget *parent)
 }
 
 // Grab keypresses meant for edit, send to serial port.
+// TODO: special key like "tab" ...
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
     if (event->type() == QEvent::KeyPress)
@@ -91,8 +99,13 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
             {
                 //char ch = s.at(0).toAscii();
                 char ch = s.at(0).toLatin1();
-                port->putChar(ch);
-                txLed->setActive(true);
+                if (port->putChar(ch)) {
+                    txLed->setActive(true);
+                    if (inputHistory) {
+                        //TODO: record a line to history
+                    }
+
+                }
             }
         }
         return true;
@@ -165,7 +178,14 @@ void MainWindow::startStopComm(void)
         device = QString("/dev/");
 #endif
         device += deviceName;
-        port = new QextSerialPort(device, QextSerialPort::Polling);
+
+        if (useEventDriven) {
+            port = new QextSerialPort(device, QextSerialPort::EventDriven);
+            connect(port, SIGNAL(readyRead()), this, SLOT(onDataAvailable()));
+            connect(port, SIGNAL(dsrChanged(bool)), this, SLOT(onDsrChanged(bool)));
+        } else {
+            port = new QextSerialPort(device, QextSerialPort::Polling);
+        }
         port->setBaudRate((BaudRateType)baudRates[baudNdx]);
         port->setDataBits(DATA_8);
         port->setParity(PAR_NONE);
@@ -181,35 +201,33 @@ void MainWindow::startStopComm(void)
             s += device;
             QMessageBox::critical(this,"Error",s);
         }
+        if (inputHistory){
+            //recore input history
+            inputHistoryFile = new QFile(inputHistoryFileName);
+            if (!inputHistoryFile->open(QIODevice::WriteOnly))
+            {
+                QString s("Cannot write file: ");
+                s += inputHistoryFileName;
+                QMessageBox::critical(this,"File write error", s);
+                inputHistoryFile = NULL;
+                return;
+            }
+
+        }
     }
     // Update status bar
     updateStatusBar();
 }
 
-void MainWindow::config(void)
+void MainWindow::configComm(void)
 {
-    Ui_configDlg dlgUi;
-    QDialog config;
     QString selectedDevice;
-
-    dlgUi.setupUi(&config);
-
-    // Setup button group for baud rate settings
-    QButtonGroup bg;
-    bg.addButton(dlgUi.rb300, 0);
-    bg.addButton(dlgUi.rb1200, 1);
-    bg.addButton(dlgUi.rb2400, 2);
-    bg.addButton(dlgUi.rb4800, 3);
-    bg.addButton(dlgUi.rb9600, 4);
-    bg.addButton(dlgUi.rb19200, 5);
-    bg.addButton(dlgUi.rb38400, 6);
-    bg.addButton(dlgUi.rb57600, 7);
-    bg.addButton(dlgUi.rb115200, 8);
+    commDlg = new commDialog(this) ;
 
     // Load settings
-    dlgUi.cbHwFlow->setChecked(hwFlow);
-    dlgUi.cbOpenStart->setChecked(openAtStart);
-    bg.button(baudNdx)->setChecked(true);
+    commDlg->setHwFlow(hwFlow);
+    commDlg->setOpenStart(openAtStart);
+    commDlg->setBaudNdx(baudNdx);
 
     // Find serial ports available
 #ifdef _TTY_POSIX_
@@ -242,41 +260,109 @@ void MainWindow::config(void)
 
     for(int i=0;i<devices.count();i++)
     {
-        if (!devices.at(i).contains("ttys"))
-            dlgUi.listPorts->addItem(devices.at(i));
+        if (!devices.at(i).contains("ttys")) {
+            commDlg->additemListPort(devices.at(i), devices.at(i));
+        }
         if (devices.at(i) == deviceName)
             selectedDevice = devices.at(i);
     }
     if (!selectedDevice.isEmpty())
     {
-        for (int i=0;i<dlgUi.listPorts->count();i++)
-            if (selectedDevice == dlgUi.listPorts->item(i)->text())
-                dlgUi.listPorts->setCurrentRow(i);
+        qDebug() << "selectedDevice: " << selectedDevice;
+        int index = commDlg->finditemListPort(selectedDevice);
+        qDebug() << "index: " << index;
+        if ( index != -1 ) { // -1 for not found
+            commDlg->setCurrentPortNdx(index);
+        }
     }
 
-    config.exec();
+    commDlg->exec();
 
-    if (config.result() == QDialog::Accepted)
+    if (commDlg->result() == QDialog::Accepted)
     {
-        // Save settings
-        QSettings settings("QTapps","QST");
-        settings.setValue("hwflow", dlgUi.cbHwFlow->isChecked());
-        settings.setValue("openAtStart", dlgUi.cbOpenStart->isChecked());
-        settings.setValue("baudNdx", bg.checkedId());
-        settings.setValue("device", dlgUi.listPorts->currentItem()->text());
         // Open serial port
         if (port)
         {
             delete port;
             port = NULL;
         }
-
-        hwFlow = dlgUi.cbHwFlow->isChecked();
-        baudNdx = bg.checkedId();
-        deviceName = dlgUi.listPorts->currentItem()->text();
-
+        // make change back to variable
+        hwFlow = commDlg->getHwFlow();
+        baudNdx = commDlg->getBaudNdx();
+        deviceName = commDlg->getPortName(commDlg->getCurrentPortNdx());
+        openAtStart = commDlg->getOpenStart();
+        saveSetting();
         startStopComm();
     }
+}
+
+void MainWindow::onDataAvailable(void)
+{
+    txLed->setActive(false);
+    rxLed->setActive(false);
+
+    int avail = port->bytesAvailable();
+    if( avail > 0 ) {
+        QByteArray bytes;
+        bytes.resize(avail);
+        int read = port->read(bytes.data(), bytes.size());
+        qDebug() << "bytes read:" << bytes.size();
+        //qDebug() << "bytes:" << bytes;
+
+        if( read > 0 ) {
+            if (logFile)
+            {
+                logFile->write(bytes);
+                logFile->flush();
+            }
+            bytes.replace("\r", "");
+            if (bytes.contains(8))
+            {
+                // Must parse backspace commands manually
+                for (int i=0;i<bytes.count();i++)
+                {
+                    char ch = bytes.at(i);
+                    if (ch == 8)
+                    {
+                        // Backspace
+                        QString s = textEdit->toPlainText();
+                        s.chop(1);
+                        textEdit->setPlainText(s);
+                    }
+                    else
+                    {
+                        // Add char to edit
+                        QString s(ch);
+                        textEdit->insertPlainText(s);
+                    }
+                    textEdit->moveCursor(QTextCursor::End);
+                }
+            }
+            else
+            {
+                textEdit->moveCursor(QTextCursor::End);
+                textEdit->insertPlainText(bytes);
+            }
+            if (autoScroll) {
+                textEdit->ensureCursorVisible();
+            }
+            rxLed->setActive(true);
+        }
+    }
+}
+
+void MainWindow::onReadFinished(void)
+{
+    qDebug() << "onReadFinished";
+    rxLed->setActive(false);
+}
+
+void MainWindow::onDsrChanged(bool status)
+{
+    if (status)
+        qDebug() << "device was turned on";
+    else
+        qDebug() << "device was turned off";
 }
 
 void MainWindow::pollSerial(void)
@@ -324,7 +410,9 @@ void MainWindow::pollSerial(void)
         textEdit->moveCursor(QTextCursor::End);
         textEdit->insertPlainText(bytes);
     }
-    textEdit->ensureCursorVisible();
+    if (autoScroll) {
+        textEdit->ensureCursorVisible();
+    }
     rxLed->setActive(true);
 }
 
@@ -333,7 +421,9 @@ void MainWindow::sendFile(void)
     if (!port) return;
 
     QString name = QFileDialog::getOpenFileName(this,
-                                                "Open File", QDir::currentPath(), "All Files (*)");
+                                                "Open File",
+                                                QDir::homePath(),
+                                                "All Files (*)");
     QFile file(name);
     if (!file.open(QIODevice::ReadOnly))
     {
@@ -350,17 +440,71 @@ void MainWindow::sendFile(void)
 
 void MainWindow::helpAbout(void)
 {
+    aboutDlg = new aboutDialog(this);
+    //about->show();
+    aboutDlg->exec();
+/*
     QDialog dlg;
     Ui_aboutDialog dlg_ui;
     dlg_ui.setupUi(&dlg);
 
     dlg.exec();
+*/
 }
+
+void MainWindow::configOption(void)
+{
+    optionDlg = new optionDialog(this);
+
+    QImage img(16,16,QImage::Format_RGB32);
+    QPainter p(&img);
+    p.fillRect(img.rect(), Qt::black);
+
+    QRect rect = img.rect().adjusted(1,1,-1,-1);
+    p.fillRect(rect, Qt::black);
+    optionDlg->setFontColorItemData(0,QPixmap::fromImage(img), Qt::DecorationRole);
+    optionDlg->setBgColorItemData(1,QPixmap::fromImage(img), Qt::DecorationRole);
+    p.fillRect(rect, Qt::white);
+    optionDlg->setFontColorItemData(1,QPixmap::fromImage(img), Qt::DecorationRole);
+    optionDlg->setBgColorItemData(0,QPixmap::fromImage(img), Qt::DecorationRole);
+    optionDlg->setFontColorDisabled(true);
+    optionDlg->setBgColorDisabled(true);
+
+    //setting
+    optionDlg->setThemeCurrentIndex(themeIdx);
+    optionDlg->setFontColorCurrentIndex(fontColorIdx);
+    optionDlg->setBgColorCurrentIndex(bgColorIdx);
+    optionDlg->setWordWrapChecked(wordWrap);
+    optionDlg->setInputHistoryChecked(inputHistory);
+    optionDlg->setInputHistoryFilename(inputHistoryFileName);
+    optionDlg->setAutoScrollChecked(autoScroll);
+
+    optionDlg->exec();
+    if (optionDlg->result() == QDialog::Accepted) {
+        qDebug() << "save option";
+        //make change to variable
+        themeIdx = optionDlg->getThemeCurrentIndex();
+        fontColorIdx = optionDlg->getFontColorCurrentIndex();
+        bgColorIdx = optionDlg->getBgColorCurrentIndex();
+        wordWrap = optionDlg->isWordWrapChecked();
+        inputHistory = optionDlg->isInputHistoryChecked();
+        inputHistoryFileName = optionDlg->getInputHistoryFilename();
+        autoScroll = optionDlg->isAutoScrollChecked();
+        applyOptionSetting();
+        saveOptionSetting();
+    }
+    optionDlg->close();
+}
+
 
 void MainWindow::saveScreen(void)
 {
     QString name = QFileDialog::getSaveFileName(this,
-                                                "Save Screen", QDir::currentPath(), "All Files (*)");
+                                                "Save Screen",
+                                                QDir::homePath(),
+                                                "All Files (*)");
+    if (name.isEmpty())
+        return;
     QFile file(name);
     if (!file.open(QIODevice::WriteOnly))
     {
@@ -384,7 +528,10 @@ void MainWindow::startLogging(void)
     }
 
     QString name = QFileDialog::getSaveFileName(this,
-                                                "Select log file", QDir::currentPath(), "All Files (*)");
+                                                "Select log file",
+                                                QDir::homePath(),
+                                                logfilter,
+                                                &select_logfilter);
     if (name.length() == 0)
         return;
     logFile = new QFile(name);
@@ -411,4 +558,82 @@ void MainWindow::endLogging(void)
 void MainWindow::aboutQt(void)
 {
     QMessageBox::aboutQt(this, "About Qt");
+}
+
+void MainWindow::readSetting(void)
+{
+    // Get settings from config file (or, god forbid, registry)
+    QSettings settings("QST","QST");
+    //comm
+    settings.beginGroup("comm");
+    baudNdx     = settings.value("baudNdx", 0).toInt();
+    hwFlow      = settings.value("hwflow", false).toBool();
+    openAtStart = settings.value("openAtStart", false).toBool();
+    deviceName  = settings.value("device", "ttyS0").toString();
+    settings.endGroup();
+    //theme
+    settings.beginGroup("theme");
+    themeIdx = settings.value("themeIdx", 0).toInt();
+    fontColorIdx = settings.value("fontColorIdx", 0).toInt();
+    bgColorIdx = settings.value("bgColorIdx", 0).toInt();
+    wordWrap = settings.value("wordWrap", true).toBool();
+    autoScroll = settings.value("autoScroll", true).toBool();
+    inputHistory = settings.value("inputHistory", false).toBool();
+    inputHistoryFileName = settings.value("inputHistoryFileName", DEF_HistoryFileName ).toString();
+    settings.endGroup();
+    //support fontColor
+    //support bgColor
+
+}
+
+void MainWindow::saveSetting(void)
+{
+    // Save settings
+    QSettings settings("QST","QST");
+    settings.beginGroup("comm");
+    settings.setValue("hwflow", hwFlow);
+    settings.setValue("openAtStart", openAtStart);
+    settings.setValue("baudNdx", baudNdx);
+    settings.setValue("device", deviceName);
+    settings.endGroup();
+}
+void MainWindow::saveOptionSetting(void)
+{
+    // Save settings
+    QSettings settings("QST","QST");
+    //theme
+    settings.beginGroup("theme");
+    settings.setValue("themeIdx", themeIdx);
+    settings.setValue("fontColorIdx", fontColorIdx);
+    settings.setValue("bgColorIdx", bgColorIdx);
+    settings.setValue("wordWrap", wordWrap);
+    settings.setValue("autoScroll", autoScroll);
+    settings.setValue("inputHistory", inputHistory);
+    settings.setValue("inputHistoryFileName", inputHistoryFileName);
+    settings.endGroup();
+
+}
+void MainWindow::applyOptionSetting(void)
+{
+    if (wordWrap) {
+        textEdit->setWordWrapMode(QTextOption::WordWrap);
+    } else {
+        textEdit->setWordWrapMode(QTextOption::NoWrap);
+    }
+    textEdit->setCenterOnScroll(autoScroll);
+
+    //font color
+    //textEdit->setTextColor(QColor(fontColorIdx));
+
+    //bg color
+    //textEdit->setBackgroundRole();
+    //QPalette p = textEdit->palette();
+    //p.setColor(QPalette::Base, QColor(240, 240, 255));
+    //textEdit->setPalette(p);
+    //TODO: 1. textEdit right clieck paste item
+    //      2. ctrl + c
+    //      3. ctrl + v
+    //      4. up arrow (last input history?)
+    //      5. down arrow
+    //
 }

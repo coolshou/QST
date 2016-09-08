@@ -11,16 +11,16 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Q Serial Terminal</string>
+   <string>Qt Serial Terminal</string>
   </property>
   <property name="windowIcon">
    <iconset resource="qst.qrc">
-    <normaloff>:/img/qst-icon.png</normaloff>:/img/qst-icon.png</iconset>
+    <normaloff>:/images/qst-icon.png</normaloff>:/images/qst-icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QPlainTextEdit" name="textEdit">
+     <widget class="consoleEditor" name="textEdit">
       <property name="font">
        <font>
         <family>Courier New</family>
@@ -58,7 +58,7 @@
      <x>0</x>
      <y>0</y>
      <width>606</width>
-     <height>21</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -80,15 +80,17 @@
     <addaction name="actionPaste"/>
     <addaction name="actionClear_Screen"/>
    </widget>
-   <widget class="QMenu" name="menuComm">
+   <widget class="QMenu" name="menuOption">
     <property name="enabled">
      <bool>true</bool>
     </property>
     <property name="title">
-     <string>Comm</string>
+     <string>Option</string>
     </property>
-    <addaction name="actionConfig"/>
+    <addaction name="actionComm"/>
     <addaction name="actionStart_Stop_Comm"/>
+    <addaction name="separator"/>
+    <addaction name="actionConfig"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -99,7 +101,7 @@
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
-   <addaction name="menuComm"/>
+   <addaction name="menuOption"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="sbStatus">
@@ -176,9 +178,12 @@
     <string>Ctrl+B</string>
    </property>
   </action>
-  <action name="actionConfig">
+  <action name="actionComm">
    <property name="text">
-    <string>Config</string>
+    <string>comm</string>
+   </property>
+   <property name="toolTip">
+    <string>setup comm port</string>
    </property>
   </action>
   <action name="actionStart_Stop_Comm">
@@ -212,15 +217,27 @@
     <string>About Qt</string>
    </property>
   </action>
+  <action name="actionConfig">
+   <property name="text">
+    <string>config</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>consoleEditor</class>
+   <extends>QPlainTextEdit</extends>
+   <header>consoleeditor.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="qst.qrc"/>
  </resources>
  <connections>
   <connection>
    <sender>actionExit</sender>
-   <signal>activated()</signal>
+   <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>close()</slot>
    <hints>
@@ -236,7 +253,7 @@
   </connection>
   <connection>
    <sender>actionClear_Screen</sender>
-   <signal>activated()</signal>
+   <signal>triggered()</signal>
    <receiver>textEdit</receiver>
    <slot>clear()</slot>
    <hints>
@@ -252,7 +269,7 @@
   </connection>
   <connection>
    <sender>actionSelect_all</sender>
-   <signal>activated()</signal>
+   <signal>triggered()</signal>
    <receiver>textEdit</receiver>
    <slot>selectAll()</slot>
    <hints>
@@ -268,7 +285,7 @@
   </connection>
   <connection>
    <sender>actionCopy</sender>
-   <signal>activated()</signal>
+   <signal>triggered()</signal>
    <receiver>textEdit</receiver>
    <slot>copy()</slot>
    <hints>
