@@ -134,10 +134,10 @@ void optionDialog::changeThemeCombobox(int idx)
         ui->cbBgColor->setDisabled(true);
     }
 }
-void optionDialog::onInputHistoryChanged(int status)
+void optionDialog::onInputHistoryChanged(int state)
 {
     bool bEnable;
-    if (status == Qt::Unchecked){
+    if (state == Qt::Unchecked){
         bEnable = false;
     } else {
         bEnable = true;
@@ -148,16 +148,6 @@ void optionDialog::onInputHistoryChanged(int status)
 }
 void optionDialog::selectInputHistory(void)
 {
-/*
-    QString name = QFileDialog::getSaveFileName(this,
-                                                "Select input History file",
-                                                QDir::homePath(),
-                                                logfilter,
-                                                &select_logfilter);
-    if (name.length() == 0)
-        return;
-
-*/
     QStringList fileNames;
     QStringList mimeTypeFilters;
     //"image/jpeg" // will show "JPEG image (*.jpeg *.jpg *.jpe)
@@ -165,6 +155,7 @@ void optionDialog::selectInputHistory(void)
                 << "application/octet-stream"; // will show "All files (*)"
 
     QFileDialog dialog(this);
+    dialog.setWindowTitle("select input history file");
     dialog.setMimeTypeFilters(mimeTypeFilters);
     dialog.setDefaultSuffix("txt");
     if (dialog.exec()) {

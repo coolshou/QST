@@ -10,9 +10,12 @@ static bool useEventDriven = true;
 
 static QString APPName = "QST";
 static QString DEF_CONFIG_PATH = QDir( QDir::homePath() +
-                                QString("/.config/") + APPName + QString("/")).path();
-static QString DEF_HistoryFileName = QDir(DEF_CONFIG_PATH).filePath("inputHistory.txt");
-
+                                QString("/.config/") + APPName +
+                                QString("/")).path();
+static QString DEF_HistoryFileName =
+        QDir(DEF_CONFIG_PATH).filePath("inputHistory.txt");
+static QString DEF_LogFileName =
+        QDir( QDir::homePath()).filePath(APPName + "_log.txt");
 static QString select_logfilter = ("Text (*.TXT *.txt)");
 const QString logfilter = "Text (*.TXT *.txt);; All files (*.*)";
 

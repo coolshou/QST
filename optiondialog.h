@@ -40,7 +40,7 @@ public:
 
 private slots:
     void changeThemeCombobox(int idx);
-    void onInputHistoryChanged(int status);
+    void onInputHistoryChanged(int state);
     void selectInputHistory(void);
     void done(int r);
 

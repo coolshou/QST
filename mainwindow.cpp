@@ -5,7 +5,7 @@
 #include <QTimer>
 #include <QtDebug>
 #include <QPainter>
-#include "ui_about.h"
+#include <QTime>
 
 #include "qextserialenumerator.h"
 #include "const.h"
@@ -275,6 +275,12 @@ void MainWindow::configComm(void)
             commDlg->setCurrentPortNdx(index);
         }
     }
+    //logfile
+    commDlg->setLogFileEnable(LogFile);
+    commDlg->setLogFileName(LogFileName);
+    commDlg->setAddTimeStemp(AddTimeStemp);
+    commDlg->setSplitFile(SplitFile);
+    commDlg->setSplitFileSize(SplitFileSize);
 
     commDlg->exec();
 
@@ -291,6 +297,13 @@ void MainWindow::configComm(void)
         baudNdx = commDlg->getBaudNdx();
         deviceName = commDlg->getPortName(commDlg->getCurrentPortNdx());
         openAtStart = commDlg->getOpenStart();
+        //logfile
+        LogFile = commDlg->getLogFileEnable();
+        LogFileName = commDlg->getLogFileName();
+        AddTimeStemp = commDlg->getAddTimeStemp();
+        SplitFile = commDlg->getSplitFile();
+        SplitFileSize = commDlg->getSplitFileSize();
+
         saveSetting();
         startStopComm();
     }
@@ -299,23 +312,28 @@ void MainWindow::configComm(void)
 void MainWindow::onDataAvailable(void)
 {
     txLed->setActive(false);
-    rxLed->setActive(false);
 
     int avail = port->bytesAvailable();
     if( avail > 0 ) {
+        rxLed->setActive(true);
         QByteArray bytes;
         bytes.resize(avail);
         int read = port->read(bytes.data(), bytes.size());
-        qDebug() << "bytes read:" << bytes.size();
-        //qDebug() << "bytes:" << bytes;
+        // qDebug() << "bytes read:" << bytes.size();
 
         if( read > 0 ) {
             if (logFile)
             {
-                logFile->write(bytes);
+                //TODO: add timestamp at the begin of line
+                if (AddTimeStemp) {
+                    QString sNow = QTime::currentTime().toString("yyyy/MM/dd_hh:mm:ss.zzz")+ " ";
+                    logFile->write(sNow.toLatin1() + bytes);
+                } else {
+                    logFile->write(bytes);
+                }
                 logFile->flush();
             }
-            bytes.replace("\r", "");
+            //bytes.replace("\r", ""); //TODO: why remove \r ?
             if (bytes.contains(8))
             {
                 // Must parse backspace commands manually
@@ -326,7 +344,7 @@ void MainWindow::onDataAvailable(void)
                     {
                         // Backspace
                         QString s = textEdit->toPlainText();
-                        s.chop(1);
+                        s.chop(1); //Removes 1 characters from the end of the string.
                         textEdit->setPlainText(s);
                     }
                     else
@@ -346,7 +364,7 @@ void MainWindow::onDataAvailable(void)
             if (autoScroll) {
                 textEdit->ensureCursorVisible();
             }
-            rxLed->setActive(true);
+            rxLed->setActive(false);
         }
     }
 }
@@ -526,12 +544,14 @@ void MainWindow::startLogging(void)
         QMessageBox::critical(this, "Error", "Logging already active");
         return;
     }
-
+/*
     QString name = QFileDialog::getSaveFileName(this,
                                                 "Select log file",
                                                 QDir::homePath(),
                                                 logfilter,
                                                 &select_logfilter);
+*/
+    QString name = LogFileName;
     if (name.length() == 0)
         return;
     logFile = new QFile(name);
@@ -564,12 +584,20 @@ void MainWindow::readSetting(void)
 {
     // Get settings from config file (or, god forbid, registry)
     QSettings settings("QST","QST");
+    //support baudRates
     //comm
     settings.beginGroup("comm");
     baudNdx     = settings.value("baudNdx", 0).toInt();
     hwFlow      = settings.value("hwflow", false).toBool();
     openAtStart = settings.value("openAtStart", false).toBool();
     deviceName  = settings.value("device", "ttyS0").toString();
+
+    LogFile = settings.value("LogFile", false).toBool();
+    LogFileName = settings.value("LogFileName", DEF_LogFileName).toString();
+    AddTimeStemp = settings.value("AddTimeStemp", true).toBool();
+    SplitFile = settings.value("SplitFile", false).toBool();
+    SplitFileSize = settings.value("SplitFileSize", 0).toInt();
+
     settings.endGroup();
     //theme
     settings.beginGroup("theme");
@@ -595,6 +623,11 @@ void MainWindow::saveSetting(void)
     settings.setValue("openAtStart", openAtStart);
     settings.setValue("baudNdx", baudNdx);
     settings.setValue("device", deviceName);
+    settings.setValue("LogFile", LogFile);
+    settings.setValue("LogFileName", LogFileName);
+    settings.setValue("AddTimeStemp", AddTimeStemp);
+    settings.setValue("SplitFile", SplitFile);
+    settings.setValue("SplitFileSize", SplitFileSize);
     settings.endGroup();
 }
 void MainWindow::saveOptionSetting(void)

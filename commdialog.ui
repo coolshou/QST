@@ -7,11 +7,11 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>300</height>
+    <height>316</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>comm</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -109,12 +109,26 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
+       <widget class="QCheckBox" name="cbLogFile">
+        <property name="text">
+         <string>Enable Log to File</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="2,0">
         <item>
-         <widget class="QLineEdit" name="editLogFile"/>
+         <widget class="QLineEdit" name="editLogFile">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QPushButton" name="btnSelectLogFile">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Select</string>
           </property>
@@ -124,8 +138,11 @@
       </item>
       <item>
        <widget class="QCheckBox" name="cbAddTimeStemp">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="text">
-         <string>Add Time Stemp</string>
+         <string>Add Time Stemp on receive data</string>
         </property>
        </widget>
       </item>
@@ -133,16 +150,29 @@
        <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="2,1,0">
         <item>
          <widget class="QCheckBox" name="cbSplitFile">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Split File when File size over</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="sbFileSize"/>
+         <widget class="QSpinBox" name="sbSplitFileSize">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="toolTip">
+           <string>0~99 MB</string>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QLabel" name="labelFileSize">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>MB</string>
           </property>

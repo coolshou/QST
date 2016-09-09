@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QVariant>
+#include <QFileDialog>
 
 namespace Ui {
 class commDialog;
@@ -26,6 +27,21 @@ public:
     int getCurrentPortNdx(void);
     QString getPortName(int idx);
     int finditemListPort(QString text);
+
+    void setLogFileEnable(bool checked);
+    bool getLogFileEnable(void);
+    void setLogFileName(QString filename);
+    QString getLogFileName(void);
+    void setAddTimeStemp(bool checked);
+    bool getAddTimeStemp(void);
+    void setSplitFile(bool checked);
+    bool getSplitFile(void);
+    void setSplitFileSize(int iSize);
+    int getSplitFileSize(void);
+
+private slots:
+    void onLogFileStateChanged(int state);
+    void selectLogFileName(void);
 
 private:
     Ui::commDialog *ui;

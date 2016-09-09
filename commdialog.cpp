@@ -6,6 +6,10 @@ commDialog::commDialog(QWidget *parent) :
     ui(new Ui::commDialog)
 {
     ui->setupUi(this);
+    connect(ui->cbLogFile,SIGNAL(stateChanged(int)),
+            this, SLOT(onLogFileStateChanged(int)));
+    connect(ui->btnSelectLogFile,SIGNAL(clicked(bool)),
+            this, SLOT(selectLogFileName()));
 }
 
 commDialog::~commDialog()
@@ -63,4 +67,84 @@ QString commDialog::getPortName(int idx)
 int commDialog::finditemListPort(QString text)
 {
     return ui->cbListPorts->findData(text);
+}
+void commDialog::setLogFileEnable(bool checked)
+{
+    ui->cbLogFile->setChecked(checked);
+}
+
+bool commDialog::getLogFileEnable(void)
+{
+    return ui->cbLogFile->isChecked();
+}
+
+void commDialog::setLogFileName(QString filename)
+{
+    ui->editLogFile->setText(filename);
+}
+QString commDialog::getLogFileName(void)
+{
+    return ui->editLogFile->text();
+}
+
+void commDialog::setAddTimeStemp(bool checked)
+{
+    ui->cbAddTimeStemp->setChecked(checked);
+}
+
+bool commDialog::getAddTimeStemp(void)
+{
+    return ui->cbAddTimeStemp->isChecked();
+}
+
+void commDialog::setSplitFile(bool checked)
+{
+    ui->cbSplitFile->setChecked(checked);
+}
+bool commDialog::getSplitFile(void)
+{
+    return ui->cbSplitFile->isChecked();
+}
+
+void commDialog::setSplitFileSize(int iSize)
+{
+    ui->sbSplitFileSize->setValue(iSize);
+}
+
+int commDialog::getSplitFileSize(void)
+{
+    return ui->sbSplitFileSize->value();
+}
+
+
+void  commDialog::onLogFileStateChanged(int state)
+{
+    bool bEnable;
+    if (state == Qt::Unchecked){
+        bEnable = false;
+    } else {
+        bEnable = true;
+    }
+    ui->editLogFile->setEnabled(bEnable);
+    ui->btnSelectLogFile->setEnabled(bEnable);
+    ui->cbAddTimeStemp->setEnabled(bEnable);
+    ui->cbSplitFile->setEnabled(bEnable);
+    ui->sbSplitFileSize->setEnabled(bEnable);
+    ui->labelFileSize->setEnabled(bEnable);
+}
+void commDialog::selectLogFileName(void)
+{
+    QStringList fileNames;
+    QStringList mimeTypeFilters;
+    mimeTypeFilters << "text/plain"
+                << "application/octet-stream"; // will show "All files (*)"
+
+    QFileDialog dialog(this);
+    dialog.setWindowTitle("Select log file");
+    dialog.setMimeTypeFilters(mimeTypeFilters);
+    dialog.setDefaultSuffix("txt");
+    if (dialog.exec()) {
+        fileNames = dialog.selectedFiles();
+        ui->editLogFile->setText(fileNames.at(0));
+    }
 }

@@ -5,6 +5,7 @@
 #include "qextserialport.h"
 #include <QTimer>
 #include <QFile>
+
 #include "ui_mainwindow.h"
 
 #include "optiondialog.h"
@@ -62,11 +63,17 @@ private:
     void updateStatusBar(void);
     QWidgetList sbList;
 
-    // Settings from config file
+    // Settings from comm file
     int baudNdx;
     bool hwFlow;
     bool openAtStart;
     QString deviceName;
+    bool LogFile;
+    QString LogFileName;
+    bool AddTimeStemp;
+    bool SplitFile;
+    int SplitFileSize;
+
     // Settings for console theme
     int themeIdx;
     int fontColorIdx;
