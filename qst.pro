@@ -1,11 +1,3 @@
-# Package information (used for qbuild packages)
-pkg=[
-    name=qst
-    desc="Qt Serial Term"
-    license=GPL
-    version=1.0.2-1
-    maintainer="coolshou"
-]
 
 TEMPLATE = app
 TARGET = qst
@@ -39,8 +31,7 @@ HEADERS += mainwindow.h \
     aboutdialog.h \
     commdialog.h \
     optiondialog.h \
-    consoleeditor.h \
-    version.h
+    consoleeditor.h
     
 FORMS += mainwindow.ui \
     aboutdialog.ui \
@@ -63,6 +54,7 @@ QMAKE_TARGET_DESCRIPTION = Qt Serial Terminal
 QMAKE_TARGET_COPYRIGHT = GPLv2
 
 }
+DEFINES += VERSION=\\\"$VERSION\\\"
 # Install the launcher item. The metadata comes from the .desktop file
 # and the path here.
 desktop=[
@@ -77,3 +69,11 @@ pics=[
     files=images/*
     path=/usr/share/qst/pixmaps
 ]   
+# Package information (used for qbuild packages)
+pkg=[
+    name=qst
+    desc="Qt Serial Term"
+    license=GPL
+    version=$VERSION-1
+    maintainer="coolshou"
+]
