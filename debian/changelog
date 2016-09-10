@@ -1,3 +1,9 @@
+qst (1.0.2-1) unstable; urgency=medium
+
+  * update UI
+
+ -- jimmy <jimmy@jimmy-alpha>  Sat, 10 Sep 2016 09:05:07 +0800
+
 qst (1.0.1-1) unstable; urgency=medium
 
   * Initial release 

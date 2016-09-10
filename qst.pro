@@ -41,7 +41,8 @@ HEADERS += mainwindow.h \
     aboutdialog.h \
     commdialog.h \
     optiondialog.h \
-    consoleeditor.h
+    consoleeditor.h \
+    version.h
     
 FORMS += mainwindow.ui \
     aboutdialog.ui \

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>247</width>
-    <height>260</height>
+    <width>259</width>
+    <height>317</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,41 +15,62 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>Qt Serial Term</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Qt Serial Term</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_version">
+       <property name="text">
+        <string>Ver 1.01</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
-    <widget class="QLabel" name="label_version">
-     <property name="text">
-      <string>Ver 1.01</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QLabel" name="label_Auther">
+       <property name="text">
+        <string>Auther:</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPlainTextEdit" name="plainTextEdit">
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+       <property name="plainText">
+        <string>v1.0.2:
+
+v1.0.1:
+Written by Blake Leverett
+bleverett@gmail.com</string>
+       </property>
+       <property name="backgroundVisible">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>Written by Blake Leverett</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLabel" name="label_3">
-     <property name="text">
-      <string>bleverett@gmail.com</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLabel" name="label_4">
+    <widget class="QLabel" name="label_copyright">
      <property name="text">
       <string>Licensed under GPL, V2.</string>
      </property>
@@ -65,7 +86,7 @@
    <item>
     <widget class="QLabel" name="label_QtVersion">
      <property name="text">
-      <string>Using &lt;a href=&quot;http://qt.nokia.com/&quot;&gt;QT &lt;/a&gt;version 5</string>
+      <string>Using &lt;a href=&quot;https://www.qt.io/&quot;&gt;QT&lt;/a&gt;</string>
      </property>
      <property name="openExternalLinks">
       <bool>true</bool>
@@ -78,7 +99,7 @@
    <item>
     <widget class="QLabel" name="label_QExtSerialPort">
      <property name="text">
-      <string>Using &lt;a href=&quot;https://github.com/qextserialport/qextserialport&quot;&gt;QExtSerialPort library &lt;/a&gt;</string>
+      <string>Using &lt;a href=&quot;https://github.com/qextserialport/qextserialport&quot;&gt;QExtSerialPort&lt;/a&gt; library</string>
      </property>
      <property name="openExternalLinks">
       <bool>true</bool>
@@ -91,7 +112,7 @@
    <item>
     <widget class="QLabel" name="label_SingleApplication">
      <property name="text">
-      <string>Using &lt;a href=&quot;https://github.com/itay-grudev/SingleApplication.git&quot;&gt;SingleApplication&lt;/a&gt;</string>
+      <string>Using &lt;a href=&quot;https://github.com/itay-grudev/SingleApplication.git&quot;&gt;SingleApplication&lt;/a&gt; library</string>
      </property>
     </widget>
    </item>
