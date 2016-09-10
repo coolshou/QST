@@ -3,7 +3,7 @@ pkg=[
     name=qst
     desc="Qt Serial Term"
     license=GPL
-    version=1.0.1-1
+    version=1.0.2-1
     maintainer="coolshou"
 ]
 
@@ -15,9 +15,7 @@ include(singleapplication/singleapplication.pri)
 DEFINES += QAPPLICATION_CLASS=QApplication
 include(qextserialport/src/qextserialport.pri)
 
-unix:DEFINES += _TTY_POSIX_
-win32:DEFINES += _TTY_WIN_
-CONFIG += debug
+# CONFIG += debug
 
 # I18n info
 STRING_LANGUAGE=en_US
@@ -53,6 +51,18 @@ OTHER_FILES +=
 
 RESOURCES += qst.qrc
 
+unix:DEFINES += _TTY_POSIX_
+win32:{
+DEFINES += _TTY_WIN_
+RC_ICONS += images/qst.ico
+
+VERSION = 1.0.2
+QMAKE_TARGET_COMPANY = coolshou
+QMAKE_TARGET_PRODUCT = QST
+QMAKE_TARGET_DESCRIPTION = Qt Serial Terminal
+QMAKE_TARGET_COPYRIGHT = GPLv2
+
+}
 # Install the launcher item. The metadata comes from the .desktop file
 # and the path here.
 desktop=[
