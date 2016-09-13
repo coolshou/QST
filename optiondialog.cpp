@@ -174,9 +174,10 @@ void optionDialog::done(int r)
             if (ui->editInputHistory->text().trimmed().isEmpty()) {
                 qDebug() << "must specify InputHistoryFilename";
                 ui->editInputHistory->setFocus();
+            } else {
+                QDialog::done(r);
+                return;
             }
-            //QDialog::done(r);
-            //return;
         } else {
             QDialog::done(r);
         }

@@ -19,6 +19,7 @@ MainWindow::MainWindow(QWidget *parent)
     setupUi(this);
     readSetting();
     applySetting();
+
     connect(actionComm, SIGNAL(triggered()), this, SLOT(configComm()));
     connect(actionOption, SIGNAL(triggered()), this, SLOT(configOption()));
     connect(actionStart_Stop_Comm, SIGNAL(triggered()), this, SLOT(startStopComm()));
@@ -28,6 +29,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(actionBegin_Logging, SIGNAL(triggered()), this, SLOT(startLogging()));
     connect(actionEnd_Logging, SIGNAL(triggered()), this, SLOT(endLogging()));
     connect(actionAbout_Qt, SIGNAL(triggered()), this, SLOT(aboutQt()));
+    connect(actionHistory, SIGNAL(triggered()), this, SLOT(showInputHistory()));
+
 
 //    baudRates[0] = BAUD300;
 //    baudRates[1] = BAUD1200;
@@ -58,8 +61,6 @@ MainWindow::MainWindow(QWidget *parent)
     applyOptionSetting();
     //textEdit->setFont();
     //textEdit->setBackgroundRole();
-    if (openAtStart)
-        startStopComm();
 
     layout()->setSpacing(1);
 
@@ -84,6 +85,9 @@ MainWindow::MainWindow(QWidget *parent)
     }
     verticalLayout->setMargin(1);
     updateStatusBar();
+    if (openAtStart)
+        startStopComm();
+
 }
 
 void MainWindow::closeEvent (QCloseEvent *event)
@@ -115,22 +119,29 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
             {
                 //char ch = s.at(0).toAscii();
                 char ch = s.at(0).toLatin1();
-                //QChar ch = s.at(0).toLatin1();
                 qDebug("keyEvent: %x", ch);
                 if (port->putChar(ch)) {
                     txLed->setActive(true);
                     if (inputHistory) {
-                        if (ch != 8) {
+                        if (ch != 13) {
+                            // collect char to a tmp QString
                             sInputHistory.append(QChar(ch));
                         } else {
-
-                            //TODO: use \r as end of a line
-                            qDebug() <<"record:" << ch ;
+                            //use Enter (0x0D: CR) as end of a line
+                            // Do no record rmpty line
+                            if (! sInputHistory.isEmpty()) {
                             if (inputHistoryFile) {
-                                //TODO: record a line to history
-                                QByteArray qba((const char *)sInputHistory.data(), sizeof(sInputHistory.data()));
-                                inputHistoryFile->write(qba);
+                                //record a line to history file
+                                qDebug() << "record:\""<< sInputHistory << "\" len:"
+                                         << sInputHistory.length();
+
+                                //QByteArray qba((const char *)sInputHistory.data(), sInputHistory.length());
+                                //qDebug()<< "qba:" <<qba;
+                                //inputHistoryFile->write(qba + "\n");
+                                inputHistoryFile->write(sInputHistory.toLatin1() + "\n");
+                                inputHistoryFile->flush();
                                 sInputHistory.clear();
+                            }
                             }
                         }
                     }
@@ -234,7 +245,7 @@ void MainWindow::startStopComm(void)
         if (inputHistory){
             //recore input history
             inputHistoryFile = new QFile(inputHistoryFileName);
-            if (!inputHistoryFile->open(QIODevice::WriteOnly))
+            if (!inputHistoryFile->open(QIODevice::WriteOnly|QIODevice::Append))
             {
                 QString s("Cannot write file: ");
                 s += inputHistoryFileName;
@@ -627,7 +638,15 @@ void MainWindow::aboutQt(void)
 {
     QMessageBox::aboutQt(this, "About Qt");
 }
-
+void MainWindow::showInputHistory(void)
+{
+    inputHistoryDlg = new InputHistoryDialog(this);
+    inputHistoryDlg->setInputHistoryFileName(inputHistoryFileName);
+    inputHistoryDlg->exec();
+    if (inputHistoryDlg->result() == QDialog::Accepted) {
+        //TODO
+    }
+}
 void MainWindow::readSetting(void)
 {
     // Get settings from config file (or, god forbid, registry)

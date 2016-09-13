@@ -11,6 +11,7 @@
 #include "optiondialog.h"
 #include "commdialog.h"
 #include "aboutdialog.h"
+#include "inputhistorydialog.h"
 #include "led.h"
 
 namespace Ui
@@ -50,6 +51,7 @@ private slots:
     void applySetting(void);
     void saveOptionSetting(void);
     void applyOptionSetting(void);
+    void showInputHistory(void);
 
 private:
     bool eventFilter(QObject *obj, QEvent *event);
@@ -58,6 +60,7 @@ private:
     aboutDialog *aboutDlg;
     commDialog *commDlg;
     optionDialog *optionDlg;
+    InputHistoryDialog *inputHistoryDlg;
 
     int baudRates[6];
     QStringList baudRateStrings;

@@ -23,7 +23,8 @@ SOURCES += main.cpp \
     aboutdialog.cpp \
     commdialog.cpp \
     optiondialog.cpp \
-    consoleeditor.cpp
+    consoleeditor.cpp \
+    inputhistorydialog.cpp
     
 HEADERS += mainwindow.h \
     led.h \ 
@@ -31,12 +32,14 @@ HEADERS += mainwindow.h \
     aboutdialog.h \
     commdialog.h \
     optiondialog.h \
-    consoleeditor.h
+    consoleeditor.h \
+    inputhistorydialog.h
     
 FORMS += mainwindow.ui \
     aboutdialog.ui \
     commdialog.ui \
-    optiondialog.ui
+    optiondialog.ui \
+    inputhistorydialog.ui
     
 OTHER_FILES += 
 
