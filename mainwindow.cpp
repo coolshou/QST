@@ -6,6 +6,7 @@
 #include <QtDebug>
 #include <QPainter>
 #include <QTime>
+#include <QDesktopWidget>
 
 #include "qextserialenumerator.h"
 #include "const.h"
@@ -17,9 +18,9 @@ MainWindow::MainWindow(QWidget *parent)
 {
     setupUi(this);
     readSetting();
-
+    applySetting();
     connect(actionComm, SIGNAL(triggered()), this, SLOT(configComm()));
-    connect(actionConfig, SIGNAL(triggered()), this, SLOT(configOption()));
+    connect(actionOption, SIGNAL(triggered()), this, SLOT(configOption()));
     connect(actionStart_Stop_Comm, SIGNAL(triggered()), this, SLOT(startStopComm()));
     connect(actionAbout, SIGNAL(triggered()), this, SLOT(helpAbout()));
     connect(actionSend, SIGNAL(triggered()), this, SLOT(sendFile()));
@@ -85,6 +86,21 @@ MainWindow::MainWindow(QWidget *parent)
     updateStatusBar();
 }
 
+void MainWindow::closeEvent (QCloseEvent *event)
+{
+    QMessageBox::StandardButton resBtn = QMessageBox::question( this, APPName,
+                                        tr("Are you sure to Quit?\n"),
+                                        QMessageBox::No | QMessageBox::Yes, QMessageBox::Yes);
+        if (resBtn != QMessageBox::Yes) {
+            event->ignore();
+        } else {
+            saveSetting();
+            saveOptionSetting();
+
+            event->accept();
+        }
+}
+
 // Grab keypresses meant for edit, send to serial port.
 // TODO: special key like "tab" ...
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
@@ -99,10 +115,24 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
             {
                 //char ch = s.at(0).toAscii();
                 char ch = s.at(0).toLatin1();
+                //QChar ch = s.at(0).toLatin1();
+                qDebug("keyEvent: %x", ch);
                 if (port->putChar(ch)) {
                     txLed->setActive(true);
                     if (inputHistory) {
-                        //TODO: record a line to history
+                        if (ch != 8) {
+                            sInputHistory.append(QChar(ch));
+                        } else {
+
+                            //TODO: use \r as end of a line
+                            qDebug() <<"record:" << ch ;
+                            if (inputHistoryFile) {
+                                //TODO: record a line to history
+                                QByteArray qba((const char *)sInputHistory.data(), sizeof(sInputHistory.data()));
+                                inputHistoryFile->write(qba);
+                                sInputHistory.clear();
+                            }
+                        }
                     }
 
                 }
@@ -333,7 +363,8 @@ void MainWindow::onDataAvailable(void)
                 }
                 logFile->flush();
             }
-            //bytes.replace("\r", ""); //TODO: why remove \r ?
+            bytes.replace("\r", ""); //TODO: why remove \r ?
+            // TODO: how about \n  ?
             if (bytes.contains(8))
             {
                 // Must parse backspace commands manually
@@ -346,6 +377,21 @@ void MainWindow::onDataAvailable(void)
                         QString s = textEdit->toPlainText();
                         s.chop(1); //Removes 1 characters from the end of the string.
                         textEdit->setPlainText(s);
+
+                        /*
+                        QCharRef c = s[s.length()-1]; // is the last caracter of the string
+                        qDebug() <<"last: "<<c;
+                        //textEdit->textCursor().deletePreviousChar();
+                        //qDebug() << "data:" << s <<"\n\n";
+                        qDebug() << "=============================" << s.length();
+                        //
+                        s = s.remove(s.length() - 1 ,1);
+                        //TODO , remove 1 characters cause breaken string!!
+                        //s.chop(ch); //Removes 1 characters from the end of the string.
+                        qDebug() << "data after chop:" << s;
+                        qDebug() << "=============================" << s.length();
+
+                        */
                     }
                     else
                     {
@@ -361,6 +407,7 @@ void MainWindow::onDataAvailable(void)
                 textEdit->moveCursor(QTextCursor::End);
                 textEdit->insertPlainText(bytes);
             }
+
             if (autoScroll) {
                 textEdit->ensureCursorVisible();
             }
@@ -505,9 +552,10 @@ void MainWindow::configOption(void)
         fontColorIdx = optionDlg->getFontColorCurrentIndex();
         bgColorIdx = optionDlg->getBgColorCurrentIndex();
         wordWrap = optionDlg->isWordWrapChecked();
+        autoScroll = optionDlg->isAutoScrollChecked();
         inputHistory = optionDlg->isInputHistoryChecked();
         inputHistoryFileName = optionDlg->getInputHistoryFilename();
-        autoScroll = optionDlg->isAutoScrollChecked();
+
         applyOptionSetting();
         saveOptionSetting();
     }
@@ -584,6 +632,14 @@ void MainWindow::readSetting(void)
 {
     // Get settings from config file (or, god forbid, registry)
     QSettings settings("QST","QST");
+    //window geome
+    settings.beginGroup("window");
+    QRect screenRect = QApplication::desktop()->screenGeometry();
+    QRect defRect = QRect((screenRect.width()-800)/2,
+                         (screenRect.height()-600)/2,
+                         800, 600);
+    geometry = settings.value("geometry", defRect).toRect();
+    settings.endGroup();
     //support baudRates
     //comm
     settings.beginGroup("comm");
@@ -618,6 +674,9 @@ void MainWindow::saveSetting(void)
 {
     // Save settings
     QSettings settings("QST","QST");
+    settings.beginGroup("window");
+    settings.setValue("geometry", this->frameGeometry());
+    settings.endGroup();
     settings.beginGroup("comm");
     settings.setValue("hwflow", hwFlow);
     settings.setValue("openAtStart", openAtStart);
@@ -630,6 +689,11 @@ void MainWindow::saveSetting(void)
     settings.setValue("SplitFileSize", SplitFileSize);
     settings.endGroup();
 }
+void MainWindow::applySetting(void)
+{
+    this->setGeometry(geometry);
+}
+
 void MainWindow::saveOptionSetting(void)
 {
     // Save settings

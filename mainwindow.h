@@ -26,7 +26,7 @@ class MainWindow : public QMainWindow,
 public:
     MainWindow(QWidget *parent = 0);
     //~MainWindow();
-    QFile *inputHistoryFile;
+
 
 public slots:
     void startStopComm(void);
@@ -47,11 +47,13 @@ private slots:
     void endLogging(void);
     void readSetting(void);
     void saveSetting(void);
+    void applySetting(void);
     void saveOptionSetting(void);
     void applyOptionSetting(void);
 
 private:
     bool eventFilter(QObject *obj, QEvent *event);
+    void closeEvent (QCloseEvent *event);
     QextSerialPort *port;
     aboutDialog *aboutDlg;
     commDialog *commDlg;
@@ -63,6 +65,8 @@ private:
     void updateStatusBar(void);
     QWidgetList sbList;
 
+    // Setting for window
+    QRect geometry;
     // Settings from comm file
     int baudNdx;
     bool hwFlow;
@@ -81,10 +85,11 @@ private:
     bool wordWrap;
     bool autoScroll;
     bool inputHistory;
+    QString sInputHistory; //temp store input history \r
     QString inputHistoryFileName;
+    QFile *inputHistoryFile;
 
-
-
+    //led
     QLed *txLed;  // Green left LED
     QLed *rxLed;  // Red right LED
     QFile *logFile;

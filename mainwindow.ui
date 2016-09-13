@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>606</width>
-    <height>433</height>
+    <width>800</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,9 +23,12 @@
      <widget class="consoleEditor" name="textEdit">
       <property name="font">
        <font>
-        <family>Courier New</family>
+        <family>Noto Mono</family>
         <pointsize>10</pointsize>
        </font>
+      </property>
+      <property name="acceptDrops">
+       <bool>false</bool>
       </property>
       <property name="frameShape">
        <enum>QFrame::Panel</enum>
@@ -57,7 +60,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>606</width>
+     <width>800</width>
      <height>23</height>
     </rect>
    </property>
@@ -80,17 +83,17 @@
     <addaction name="actionPaste"/>
     <addaction name="actionClear_Screen"/>
    </widget>
-   <widget class="QMenu" name="menuOption">
+   <widget class="QMenu" name="menuConfig">
     <property name="enabled">
      <bool>true</bool>
     </property>
     <property name="title">
-     <string>Option</string>
+     <string>Config</string>
     </property>
     <addaction name="actionComm"/>
     <addaction name="actionStart_Stop_Comm"/>
     <addaction name="separator"/>
-    <addaction name="actionConfig"/>
+    <addaction name="actionOption"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -99,15 +102,16 @@
     <addaction name="actionAbout"/>
     <addaction name="actionAbout_Qt"/>
    </widget>
-   <widget class="QMenu" name="menuScript">
+   <widget class="QMenu" name="menuControl">
     <property name="title">
-     <string>Script</string>
+     <string>Control</string>
     </property>
+    <addaction name="actionMacro"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
-   <addaction name="menuScript"/>
-   <addaction name="menuOption"/>
+   <addaction name="menuControl"/>
+   <addaction name="menuConfig"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="sbStatus">
@@ -223,9 +227,14 @@
     <string>About Qt</string>
    </property>
   </action>
-  <action name="actionConfig">
+  <action name="actionOption">
    <property name="text">
-    <string>config</string>
+    <string>Option</string>
+   </property>
+  </action>
+  <action name="actionMacro">
+   <property name="text">
+    <string>Macro</string>
    </property>
   </action>
  </widget>
