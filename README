@@ -16,31 +16,23 @@ Currently the program only supports N-8-1 serial format.  It should be
 simple to support E-7-1, but I don't have any embedded devices that use
 that format, so it isn't implemented.
 
-Arranging the sources:
-
-QST depends on the QExtSerialPort library.  You must obtain the source
-for QExtSerialPort from https://github.com/qextserialport/qextserialport.
-Do not use the older version from SourceForge.  Either download the
-Version 1.2 (or higher) or use git to clone the repository.
-
-Place the QExtSerialPort source directory alongside the QST directory,
-like this:
-
-somedir/
-   qextserialport/
-   qst/
+Get sources:
+   git clone https://github.com/coolshou/QST.git
+   git submodule update
 
 Building:
 
-Qt Creator: Open the file qst/qst.pro.  This should open the project.
+   Qt Creator: 
+      Open the file qst/qst.pro.  This should open the project.
 Now compile by pressing the compile button or from the Build menu on
 the main menu.
 
-Command line:  Go to the qst directory.  Type this:
-
-qmake
-make
-
+   Command line:  
+      Go to the qst directory.  Type this:
+   
+   qmake
+   make
+   
 The project should build.
 
 
