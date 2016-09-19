@@ -5,6 +5,8 @@
 #include <QStringList>
 #include <QColor>
 #include <QDir>
+#include "qextserialport.h"
+
 
 static bool useEventDriven = true;
 
@@ -18,6 +20,11 @@ static QString DEF_LogFileName =
         QDir( QDir::homePath()).filePath(APPName + "_log.txt");
 static QString select_logfilter = ("Text (*.TXT *.txt)");
 const QString logfilter = "Text (*.TXT *.txt);; All files (*.*)";
+
+static int DEF_baudRates[] = { BAUD2400, BAUD4800, BAUD9600,
+                               BAUD19200, BAUD38400,
+                               BAUD57600, BAUD115200};
+const int Max_BaudRates = sizeof(DEF_baudRates)/sizeof(DEF_baudRates[0]);
 
 //pre-define theme
 enum consoleThemes {

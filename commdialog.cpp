@@ -1,11 +1,22 @@
 #include "commdialog.h"
 #include "ui_commdialog.h"
+#include "mainwindow.h"
 
 commDialog::commDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::commDialog)
 {
     ui->setupUi(this);
+    //ui's baudRate depends on getBaudRateStrings()
+    ui->cbSpeed->clear();
+    //int i;
+    QStringList list = MainWindow(parent).getBaudRateStrings();
+    QString baudRate;
+    foreach (baudRate, list) {
+        //qDebug() << "commDialog:" << baudRate;
+        ui->cbSpeed->addItem(baudRate);
+    }
+
     connect(ui->cbLogFile,SIGNAL(stateChanged(int)),
             this, SLOT(onLogFileStateChanged(int)));
     connect(ui->btnSelectLogFile,SIGNAL(clicked(bool)),

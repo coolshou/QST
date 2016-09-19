@@ -13,6 +13,7 @@
 #include "aboutdialog.h"
 #include "inputhistorydialog.h"
 #include "led.h"
+#include "const.h"
 
 namespace Ui
 {
@@ -27,7 +28,7 @@ class MainWindow : public QMainWindow,
 public:
     MainWindow(QWidget *parent = 0);
     //~MainWindow();
-
+    QStringList getBaudRateStrings(void);
 
 public slots:
     void startStopComm(void);
@@ -62,7 +63,7 @@ private:
     optionDialog *optionDlg;
     InputHistoryDialog *inputHistoryDlg;
 
-    int baudRates[6];
+    int baudRates[Max_BaudRates];
     QStringList baudRateStrings;
     QTimer timer;
     void updateStatusBar(void);

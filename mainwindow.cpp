@@ -9,7 +9,7 @@
 #include <QDesktopWidget>
 
 #include "qextserialenumerator.h"
-#include "const.h"
+
 
 MainWindow::MainWindow(QWidget *parent)
 //Polling mode
@@ -31,25 +31,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(actionAbout_Qt, SIGNAL(triggered()), this, SLOT(aboutQt()));
     connect(actionHistory, SIGNAL(triggered()), this, SLOT(showInputHistory()));
 
-
-//    baudRates[0] = BAUD300;
-//    baudRates[1] = BAUD1200;
-//    baudRates[2] = BAUD2400;
-    baudRates[0] = BAUD4800;
-    baudRates[1] = BAUD9600;
-    baudRates[2] = BAUD19200;
-    baudRates[3] = BAUD38400;
-    baudRates[4] = BAUD57600;
-    baudRates[5] = BAUD115200;
-//    baudRateStrings.append("300");
-//    baudRateStrings.append("1200");
-//    baudRateStrings.append("2400");
-    baudRateStrings.append("4800");
-    baudRateStrings.append("9600");
-    baudRateStrings.append("19200");
-    baudRateStrings.append("38400");
-    baudRateStrings.append("57600");
-    baudRateStrings.append("115200");
 
     if (! useEventDriven) {
         //use timer to poll serial data
@@ -659,7 +640,30 @@ void MainWindow::readSetting(void)
                          800, 600);
     geometry = settings.value("geometry", defRect).toRect();
     settings.endGroup();
+
     //support baudRates
+    settings.beginGroup("baudRates");
+    QStringList baudRateskeys = settings.allKeys();
+    int iMax = sizeof(DEF_baudRates)/sizeof(DEF_baudRates[0]);
+    int iRate=0;
+    if (baudRateskeys.length()<iMax) {
+        //when DEF_baudRates changed, update config
+        for (iRate=0; iRate<iMax; ++iRate) {
+            qDebug() << "DEF_baudRates:" << DEF_baudRates[iRate];
+            baudRates[iRate] = DEF_baudRates[iRate];
+            baudRateStrings.append(QString::number(DEF_baudRates[iRate]));
+        }
+    } else if (baudRateskeys.length()>0) {
+        //qDebug() << baudRateskeys;
+        foreach (const QString &baudRateskey, baudRateskeys) {
+            baudRates[iRate] = settings.value(baudRateskey, DEF_baudRates[iRate]).toInt();
+            //qDebug()<<"baudRates[iRate]:" <<QString::number(baudRates[iRate]);
+            baudRateStrings.append(QString::number(baudRates[iRate]));
+            iRate = iRate + 1;
+        }
+    }
+    settings.endGroup();
+
     //comm
     settings.beginGroup("comm");
     baudNdx     = settings.value("baudNdx", 0).toInt();
@@ -672,8 +676,8 @@ void MainWindow::readSetting(void)
     AddTimeStemp = settings.value("AddTimeStemp", true).toBool();
     SplitFile = settings.value("SplitFile", false).toBool();
     SplitFileSize = settings.value("SplitFileSize", 0).toInt();
-
     settings.endGroup();
+
     //theme
     settings.beginGroup("theme");
     themeIdx = settings.value("themeIdx", 0).toInt();
@@ -696,6 +700,17 @@ void MainWindow::saveSetting(void)
     settings.beginGroup("window");
     settings.setValue("geometry", this->frameGeometry());
     settings.endGroup();
+
+    //support baudRates
+    settings.beginGroup("baudRates");
+    int iMax = sizeof(baudRates)/sizeof(baudRates[0]);
+    //qDebug() << "Max:" << iMax;
+    for (int iRate = 0; iRate < iMax; ++iRate) {
+        //qDebug()<<"baudRates["<<iRate<<"]:" <<baudRates[iRate];
+        settings.setValue(QString::number(iRate), baudRates[iRate]);
+    }
+    settings.endGroup();
+
     settings.beginGroup("comm");
     settings.setValue("hwflow", hwFlow);
     settings.setValue("openAtStart", openAtStart);
@@ -708,6 +723,7 @@ void MainWindow::saveSetting(void)
     settings.setValue("SplitFileSize", SplitFileSize);
     settings.endGroup();
 }
+
 void MainWindow::applySetting(void)
 {
     this->setGeometry(geometry);
@@ -752,4 +768,10 @@ void MainWindow::applyOptionSetting(void)
     //      4. up arrow (last input history?)
     //      5. down arrow
     //
+}
+
+QStringList MainWindow::getBaudRateStrings(void)
+{
+    //qDebug() << "getBaudRateStrings" << baudRateStrings;
+    return baudRateStrings;
 }
