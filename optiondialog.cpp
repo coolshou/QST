@@ -7,6 +7,24 @@ optionDialog::optionDialog(QWidget *parent) :
     ui(new Ui::optionDialog)
 {
     ui->setupUi(this);
+
+    QImage img(16,16,QImage::Format_RGB32);
+    QPainter p(&img);
+    p.fillRect(img.rect(), Qt::black);
+
+    QRect rect = img.rect().adjusted(1,1,-1,-1);
+    //font color
+    for (int i=0;i<Max_fontColors;++i){
+        //qDebug() <<"fontColors:"<<DEF_fontColors[i];
+        p.fillRect(rect, DEF_fontColors[i]);
+        setFontColorItemData(i, DEF_fontColors[i], QPixmap::fromImage(img), Qt::DecorationRole);
+    }
+    //bg color
+    for (int i=0;i<Max_bgColors;++i){
+        //qDebug() <<"bgColors:"<<DEF_bgColors[i];
+        p.fillRect(rect, DEF_bgColors[i]);
+        setBgColorItemData(i, DEF_bgColors[i], QPixmap::fromImage(img), Qt::DecorationRole);
+    }
     connect(ui->cbTheme, SIGNAL(currentIndexChanged(int)),
             this, SLOT(changeThemeCombobox(int)));
     connect(ui->cbInputHistory, SIGNAL(stateChanged(int)),
@@ -20,8 +38,9 @@ optionDialog::~optionDialog()
     delete ui;
 }
 
-void optionDialog::setFontColorItemData(int index, const QVariant &value, int role)
+void optionDialog::setFontColorItemData(int index, QColor color, const QVariant &value, int role)
 {
+    ui->cbFontColor->insertItem(index, color.name());
     ui->cbFontColor->setItemData(index, value, role);
 }
 
@@ -39,8 +58,9 @@ int optionDialog::getFontColorCurrentIndex(void)
 {
     return ui->cbFontColor->currentIndex();
 }
-void optionDialog::setBgColorItemData(int index, const QVariant &value, int role)
+void optionDialog::setBgColorItemData(int index, QColor color, const QVariant &value, int role)
 {
+    ui->cbBgColor->insertItem(index, color.name());
     ui->cbBgColor->setItemData(index, value, role);
 }
 
@@ -127,7 +147,6 @@ void optionDialog::changeThemeCombobox(int idx)
         ui->cbFontColor->setDisabled(false);
         ui->cbBgColor->setDisabled(false);
     } else {
-
         ui->cbFontColor->setCurrentIndex(idx);
         ui->cbBgColor->setCurrentIndex(idx);
         ui->cbFontColor->setDisabled(true);

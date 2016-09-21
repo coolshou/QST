@@ -2,10 +2,10 @@
 TEMPLATE = app
 TARGET = qst
 
-
 include(singleapplication/singleapplication.pri)
 DEFINES += QAPPLICATION_CLASS=QApplication
-include(qextserialport/src/qextserialport.pri)
+# include(qextserialport/src/qextserialport.pri)
+include(qtserialport/src/serialport/serialport-lib.pri)
 
 # CONFIG += debug
 
@@ -14,7 +14,8 @@ STRING_LANGUAGE=en_US
 LANGUAGES=en_US
 
 greaterThan(QT_MAJOR_VERSION, 4) {
-    QT       += widgets 
+    QT       += widgets
+    QT       += serialport
 }
 
 SOURCES += main.cpp \
@@ -45,17 +46,20 @@ OTHER_FILES +=
 
 RESOURCES += qst.qrc
 
-VERSION = 1.0.2
-unix:DEFINES += _TTY_POSIX_
+VERSION = 1.1.0
+unix:{
+    DEFINES += _TTY_POSIX_
+    #for serialport-lib.pri not found private/qringbuffer_p.h issue
+    INCLUDEPATH += /usr/include/x86_64-linux-gnu/qt5/QtCore/5.5.1/QtCore/
+}
 win32:{
-DEFINES += _TTY_WIN_
-RC_ICONS += images/qst.ico
+    DEFINES += _TTY_WIN_
+    RC_ICONS += images/qst.ico
 
-QMAKE_TARGET_COMPANY = coolshou
-QMAKE_TARGET_PRODUCT = QST
-QMAKE_TARGET_DESCRIPTION = Qt Serial Terminal
-QMAKE_TARGET_COPYRIGHT = GPLv2
-
+    QMAKE_TARGET_COMPANY = coolshou
+    QMAKE_TARGET_PRODUCT = QST
+    QMAKE_TARGET_DESCRIPTION = Qt Serial Terminal
+    QMAKE_TARGET_COPYRIGHT = GPLv2
 }
 DEFINES += VERSION=\\\"$${VERSION}\\\"
 # Install the launcher item. The metadata comes from the .desktop file

@@ -8,29 +8,19 @@
 #include <QTime>
 #include <QDesktopWidget>
 
-#include "qextserialenumerator.h"
-
+//#include "qextserialenumerator.h"
 
 MainWindow::MainWindow(QWidget *parent)
-//Polling mode
-    : QMainWindow(parent), port(0), logFile(NULL)
-//    : QMainWindow(parent), port(1), logFile(NULL)
+//Polling mode?
+    : QMainWindow(parent), serial(0), logFile(NULL)
+//EventDriven mode?
+//    : QMainWindow(parent), serial(QextSerialPort::EventDriven), logFile(NULL)
 {
     setupUi(this);
     readSetting();
     applySetting();
 
-    connect(actionComm, SIGNAL(triggered()), this, SLOT(configComm()));
-    connect(actionOption, SIGNAL(triggered()), this, SLOT(configOption()));
-    connect(actionStart_Stop_Comm, SIGNAL(triggered()), this, SLOT(startStopComm()));
-    connect(actionAbout, SIGNAL(triggered()), this, SLOT(helpAbout()));
-    connect(actionSend, SIGNAL(triggered()), this, SLOT(sendFile()));
-    connect(actionSave_Screen, SIGNAL(triggered()), this, SLOT(saveScreen()));
-    connect(actionBegin_Logging, SIGNAL(triggered()), this, SLOT(startLogging()));
-    connect(actionEnd_Logging, SIGNAL(triggered()), this, SLOT(endLogging()));
-    connect(actionAbout_Qt, SIGNAL(triggered()), this, SLOT(aboutQt()));
-    connect(actionHistory, SIGNAL(triggered()), this, SLOT(showInputHistory()));
-
+    initActionsConnections();
 
     if (! useEventDriven) {
         //use timer to poll serial data
@@ -38,7 +28,8 @@ MainWindow::MainWindow(QWidget *parent)
         timer.start(100);
     }
 
-    textEdit->installEventFilter(this);
+    //textEdit->installEventFilter(this);
+    connect(textEdit, SIGNAL(getData(QByteArray)), this, SLOT(writeData(QByteArray)));
     applyOptionSetting();
     //textEdit->setFont();
     //textEdit->setBackgroundRole();
@@ -66,9 +57,19 @@ MainWindow::MainWindow(QWidget *parent)
     }
     verticalLayout->setMargin(1);
     updateStatusBar();
+
     if (openAtStart)
         startStopComm();
 
+}
+
+MainWindow::~MainWindow()
+{
+    //TODO: delete any dialog?
+//    delete aboutDlg;
+//    delete commDlg;
+//    delete optionDlg;
+//    delete inputHistoryDlg;
 }
 
 void MainWindow::closeEvent (QCloseEvent *event)
@@ -79,6 +80,7 @@ void MainWindow::closeEvent (QCloseEvent *event)
         if (resBtn != QMessageBox::Yes) {
             event->ignore();
         } else {
+            //qDebug() <<"CloseEvent";
             saveSetting();
             saveOptionSetting();
 
@@ -93,7 +95,7 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
     if (event->type() == QEvent::KeyPress)
     {
          QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
-        if (port)
+        if (serial)
         {
             QString s = keyEvent->text();
             if (s.length())
@@ -101,7 +103,7 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                 //char ch = s.at(0).toAscii();
                 char ch = s.at(0).toLatin1();
                 qDebug("keyEvent: %x", ch);
-                if (port->putChar(ch)) {
+                if (serial->putChar(ch)) {
                     txLed->setActive(true);
                     if (inputHistory) {
                         if (ch != 13) {
@@ -145,7 +147,7 @@ void MainWindow::updateStatusBar(void)
         statusBar()->removeWidget(sbList.at(i));
     }
 
-    if (port)
+    if (serial)
     {
         for (int i=0;i<6;i++)
         {
@@ -154,7 +156,7 @@ void MainWindow::updateStatusBar(void)
         }
         QLabel *lbl;
         lbl = static_cast<QLabel*> (sbList.at(1));
-        QString s = port->portName();
+        QString s = serial->portName();
         lbl->setText(s);
         lbl = static_cast<QLabel*> (sbList.at(2));
         s = baudRateStrings.at(baudNdx);
@@ -186,11 +188,11 @@ void MainWindow::updateStatusBar(void)
 
 void MainWindow::startStopComm(void)
 {
-    if (port)
+    if (serial)
     {
         // close it
-        delete port;
-        port = NULL;
+        delete serial;
+        serial = NULL;
     }
     else
     {
@@ -201,27 +203,41 @@ void MainWindow::startStopComm(void)
 #endif
         device += deviceName;
 
+        serial = new QSerialPort(this);
         if (useEventDriven) {
-            port = new QextSerialPort(device, QextSerialPort::EventDriven);
-            connect(port, SIGNAL(readyRead()), this, SLOT(onDataAvailable()));
-            connect(port, SIGNAL(dsrChanged(bool)), this, SLOT(onDsrChanged(bool)));
+            //serial = new QextSerialPort(device, QextSerialPort::EventDriven);
+            //serial = new QextSerialPort(device, QextSerialPort::EventDriven);
+            //sometimes did not get all data?
+            connect(serial, SIGNAL(readyRead()), this, SLOT(onDataAvailable()));
+            //connect(serial, SIGNAL(readyRead()), this, SLOT(readData()));
+            //connect(serial, SIGNAL(readChannelFinished()), this, SLOT(onReadFinished()));
+            //connect(serial, SIGNAL(dsrChanged(bool)), this, SLOT(onDsrChanged(bool)));
         } else {
-            port = new QextSerialPort(device, QextSerialPort::Polling);
+//            serial = new QextSerialPort(device, QextSerialPort::Polling);
         }
-        port->setBaudRate((BaudRateType)baudRates[baudNdx]);
-        port->setDataBits(DATA_8);
-        port->setParity(PAR_NONE);
-        port->setStopBits(STOP_1);
-        port->setFlowControl(hwFlow ? FLOW_HARDWARE : FLOW_OFF);
-        port->setTimeout(100);
+        /*
+        serial->setBaudRate((BaudRateType)baudRates[baudNdx]);
+        serial->setDataBits(DATA_8);
+        serial->setParity(PAR_NONE);
+        serial->setStopBits(STOP_1);
+        serial->setFlowControl(hwFlow ? FLOW_HARDWARE : FLOW_OFF);
+        serial->setTimeout(100);
+        */
+        serial->setPortName(device);
+        serial->setBaudRate(baudRates[baudNdx]);
+        serial->setDataBits(QSerialPort::Data8);
+        serial->setParity(QSerialPort::NoParity);
+        serial->setStopBits(QSerialPort::OneStop);
+        serial->setFlowControl(hwFlow ? QSerialPort::HardwareControl : QSerialPort::NoFlowControl);
 
-        if (!port->open(QIODevice::ReadWrite))
+        if (!serial->open(QIODevice::ReadWrite))
         {
-            delete port;
-            port = NULL;
-            QString s("Cannot open port ");
+            delete serial;
+            serial = NULL;
+            QString s("Cannot open serial ");
             s += device;
             QMessageBox::critical(this,"Error",s);
+            return;
         }
         if (inputHistory){
             //recore input history
@@ -240,6 +256,8 @@ void MainWindow::startStopComm(void)
     // Update status bar
     updateStatusBar();
 }
+
+
 
 void MainWindow::configComm(void)
 {
@@ -309,10 +327,10 @@ void MainWindow::configComm(void)
     if (commDlg->result() == QDialog::Accepted)
     {
         // Open serial port
-        if (port)
+        if (serial)
         {
-            delete port;
-            port = NULL;
+            delete serial;
+            serial = NULL;
         }
         // make change back to variable
         hwFlow = commDlg->getHwFlow();
@@ -331,16 +349,28 @@ void MainWindow::configComm(void)
     }
 }
 
+//read serial data at once
+void MainWindow::readData(void)
+{
+    rxLed->setActive(true);
+    //TODO: how to handle backspace with readAll??
+    QByteArray data = serial->readAll();
+    //TODO: timestemp
+    textEdit->putData(data);
+    //TODO: logFile
+}
+
+//read serial data by bytesAvailable
 void MainWindow::onDataAvailable(void)
 {
     txLed->setActive(false);
 
-    int avail = port->bytesAvailable();
+    int avail = serial->bytesAvailable();
     if( avail > 0 ) {
         rxLed->setActive(true);
         QByteArray bytes;
         bytes.resize(avail);
-        int read = port->read(bytes.data(), bytes.size());
+        int read = serial->read(bytes.data(), bytes.size());
         // qDebug() << "bytes read:" << bytes.size();
 
         if( read > 0 ) {
@@ -356,6 +386,7 @@ void MainWindow::onDataAvailable(void)
                 logFile->flush();
             }
             bytes.replace("\r", ""); //TODO: why remove \r ?
+            //qDebug()<<"bytes:"<<bytes;
             // TODO: how about \n  ?
             if (bytes.contains(8))
             {
@@ -367,26 +398,15 @@ void MainWindow::onDataAvailable(void)
                     {
                         // Backspace
                         QString s = textEdit->toPlainText();
-                        s.chop(1); //Removes 1 characters from the end of the string.
+                        //s.chop(1); //Removes 1 characters from the end of the string.
+                        //qDebug()<<"size QByteArray:"<<sizeof(QByteArray);
+                        //qDebug()<<"size char:"<<sizeof(ch);
+                        s.chop(sizeof(ch));
                         textEdit->setPlainText(s);
-
-                        /*
-                        QCharRef c = s[s.length()-1]; // is the last caracter of the string
-                        qDebug() <<"last: "<<c;
-                        //textEdit->textCursor().deletePreviousChar();
-                        //qDebug() << "data:" << s <<"\n\n";
-                        qDebug() << "=============================" << s.length();
-                        //
-                        s = s.remove(s.length() - 1 ,1);
-                        //TODO , remove 1 characters cause breaken string!!
-                        //s.chop(ch); //Removes 1 characters from the end of the string.
-                        qDebug() << "data after chop:" << s;
-                        qDebug() << "=============================" << s.length();
-
-                        */
                     }
                     else
                     {
+                        //TODO: tab char
                         // Add char to edit
                         QString s(ch);
                         textEdit->insertPlainText(s);
@@ -396,16 +416,20 @@ void MainWindow::onDataAvailable(void)
             }
             else
             {
-                textEdit->moveCursor(QTextCursor::End);
-                textEdit->insertPlainText(bytes);
+                //textEdit->moveCursor(QTextCursor::End);
+                //textEdit->insertPlainText(bytes);
+                textEdit->putData(bytes);
             }
-
+/*
             if (autoScroll) {
                 textEdit->ensureCursorVisible();
             }
+*/
             rxLed->setActive(false);
+
         }
     }
+    //rxLed->setActive(false);
 }
 
 void MainWindow::onReadFinished(void)
@@ -429,9 +453,9 @@ void MainWindow::pollSerial(void)
     rxLed->setActive(false);
     txLed->setActive(false);
 
-    if (!port) return;
+    if (!serial) return;
     
-    QByteArray bytes = port->readAll();
+    QByteArray bytes = serial->readAll();
 
     if (bytes.isEmpty()) return;
     if (logFile)
@@ -475,7 +499,7 @@ void MainWindow::pollSerial(void)
 
 void MainWindow::sendFile(void)
 {
-    if (!port) return;
+    if (!serial) return;
 
     QString name = QFileDialog::getOpenFileName(this,
                                                 "Open File",
@@ -491,7 +515,7 @@ void MainWindow::sendFile(void)
     }
 
     QByteArray bytes = file.readAll();
-    port->write(bytes);
+    serial->write(bytes);
     file.close();
 }
 
@@ -512,25 +536,10 @@ void MainWindow::helpAbout(void)
 void MainWindow::configOption(void)
 {
     optionDlg = new optionDialog(this);
-
-    QImage img(16,16,QImage::Format_RGB32);
-    QPainter p(&img);
-    p.fillRect(img.rect(), Qt::black);
-
-    QRect rect = img.rect().adjusted(1,1,-1,-1);
-    p.fillRect(rect, Qt::black);
-    optionDlg->setFontColorItemData(0,QPixmap::fromImage(img), Qt::DecorationRole);
-    optionDlg->setBgColorItemData(1,QPixmap::fromImage(img), Qt::DecorationRole);
-    p.fillRect(rect, Qt::white);
-    optionDlg->setFontColorItemData(1,QPixmap::fromImage(img), Qt::DecorationRole);
-    optionDlg->setBgColorItemData(0,QPixmap::fromImage(img), Qt::DecorationRole);
-    optionDlg->setFontColorDisabled(true);
-    optionDlg->setBgColorDisabled(true);
-
     //setting
     optionDlg->setThemeCurrentIndex(themeIdx);
-    optionDlg->setFontColorCurrentIndex(fontColorIdx);
-    optionDlg->setBgColorCurrentIndex(bgColorIdx);
+    //optionDlg->setFontColorCurrentIndex(fontColorIdx);
+    //optionDlg->setBgColorCurrentIndex(bgColorIdx);
     optionDlg->setWordWrapChecked(wordWrap);
     optionDlg->setInputHistoryChecked(inputHistory);
     optionDlg->setInputHistoryFilename(inputHistoryFileName);
@@ -638,17 +647,17 @@ void MainWindow::readSetting(void)
     QRect defRect = QRect((screenRect.width()-800)/2,
                          (screenRect.height()-600)/2,
                          800, 600);
-    geometry = settings.value("geometry", defRect).toRect();
+    mGeometry = settings.value("geometry", defRect).toRect();
     settings.endGroup();
 
     //support baudRates
     settings.beginGroup("baudRates");
     QStringList baudRateskeys = settings.allKeys();
-    int iMax = sizeof(DEF_baudRates)/sizeof(DEF_baudRates[0]);
+    //int iMax = sizeof(DEF_baudRates)/sizeof(DEF_baudRates[0]);
     int iRate=0;
-    if (baudRateskeys.length()<iMax) {
+    if (baudRateskeys.length()<Max_BaudRates) {
         //when DEF_baudRates changed, update config
-        for (iRate=0; iRate<iMax; ++iRate) {
+        for (iRate=0; iRate<Max_BaudRates; ++iRate) {
             qDebug() << "DEF_baudRates:" << DEF_baudRates[iRate];
             baudRates[iRate] = DEF_baudRates[iRate];
             baudRateStrings.append(QString::number(DEF_baudRates[iRate]));
@@ -698,14 +707,14 @@ void MainWindow::saveSetting(void)
     // Save settings
     QSettings settings("QST","QST");
     settings.beginGroup("window");
-    settings.setValue("geometry", this->frameGeometry());
+    settings.setValue("geometry", this->geometry());
     settings.endGroup();
 
     //support baudRates
     settings.beginGroup("baudRates");
-    int iMax = sizeof(baudRates)/sizeof(baudRates[0]);
+    //int iMax = sizeof(baudRates)/sizeof(baudRates[0]);
     //qDebug() << "Max:" << iMax;
-    for (int iRate = 0; iRate < iMax; ++iRate) {
+    for (int iRate = 0; iRate < Max_BaudRates; ++iRate) {
         //qDebug()<<"baudRates["<<iRate<<"]:" <<baudRates[iRate];
         settings.setValue(QString::number(iRate), baudRates[iRate]);
     }
@@ -726,7 +735,7 @@ void MainWindow::saveSetting(void)
 
 void MainWindow::applySetting(void)
 {
-    this->setGeometry(geometry);
+    this->setGeometry(mGeometry);
 }
 
 void MainWindow::saveOptionSetting(void)
@@ -753,15 +762,9 @@ void MainWindow::applyOptionSetting(void)
         textEdit->setWordWrapMode(QTextOption::NoWrap);
     }
     textEdit->setCenterOnScroll(autoScroll);
-
-    //font color
-    //textEdit->setTextColor(QColor(fontColorIdx));
-
-    //bg color
-    //textEdit->setBackgroundRole();
-    //QPalette p = textEdit->palette();
-    //p.setColor(QPalette::Base, QColor(240, 240, 255));
-    //textEdit->setPalette(p);
+    textEdit->setAutoScroll(autoScroll);
+    //console theme
+    textEdit->set_theme(DEF_fontColors[fontColorIdx], DEF_bgColors[bgColorIdx]);
     //TODO: 1. textEdit right clieck paste item
     //      2. ctrl + c
     //      3. ctrl + v
@@ -774,4 +777,58 @@ QStringList MainWindow::getBaudRateStrings(void)
 {
     //qDebug() << "getBaudRateStrings" << baudRateStrings;
     return baudRateStrings;
+}
+
+void MainWindow::writeData(const QByteArray &data)
+{
+    if (serial) {
+        txLed->setActive(true);
+        qDebug() << "writeData" <<data;
+        //serial->write(data);
+        serial->write(data);
+        /*
+        const char *ch;
+
+        serial->putChar(ch);
+        */
+        //const char *ch;
+        //ch = data.data();
+        if (inputHistory) {
+            if (data.indexOf("\r")<0) {
+                // collect char to a tmp QString
+                sInputHistory.append(data);
+            } else {
+                //use Enter (0x0D: CR) as end of a line
+                // Do no record rmpty line
+                if (! sInputHistory.isEmpty()) {
+                    if (inputHistoryFile) {
+                        //record a line to history file
+                        qDebug() << "record:\""<< sInputHistory << "\" len:"
+                                 << sInputHistory.length();
+
+                        //QByteArray qba((const char *)sInputHistory.data(), sInputHistory.length());
+                        //qDebug()<< "qba:" <<qba;
+                        //inputHistoryFile->write(qba + "\n");
+                        inputHistoryFile->write(sInputHistory.toLatin1() + "\n");
+                        inputHistoryFile->flush();
+                        sInputHistory.clear();
+                    }
+                }
+            }
+        }
+    }
+}
+
+void MainWindow::initActionsConnections(void)
+{
+    connect(actionComm, SIGNAL(triggered()), this, SLOT(configComm()));
+    connect(actionOption, SIGNAL(triggered()), this, SLOT(configOption()));
+    connect(actionStart_Stop_Comm, SIGNAL(triggered()), this, SLOT(startStopComm()));
+    connect(actionAbout, SIGNAL(triggered()), this, SLOT(helpAbout()));
+    connect(actionSend, SIGNAL(triggered()), this, SLOT(sendFile()));
+    connect(actionSave_Screen, SIGNAL(triggered()), this, SLOT(saveScreen()));
+    connect(actionBegin_Logging, SIGNAL(triggered()), this, SLOT(startLogging()));
+    connect(actionEnd_Logging, SIGNAL(triggered()), this, SLOT(endLogging()));
+    connect(actionAbout_Qt, SIGNAL(triggered()), this, SLOT(aboutQt()));
+    connect(actionHistory, SIGNAL(triggered()), this, SLOT(showInputHistory()));
 }

@@ -1,4 +1,10 @@
-qst (1.0.2-1) unstable; urgency=medium
+qst (1.1.0-1) UNRELEASED; urgency=medium
+
+  * replace qextserialport with qtserialport
+
+ -- jimmy <jimmy@jimmy-alpha>  Wed, 21 Sep 2016 11:56:35 +0800
+
+qst (1.0.2-2) unstable; urgency=medium
 
   * update UI
 

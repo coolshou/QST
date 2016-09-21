@@ -5,7 +5,7 @@
 #include <QDialog>
 #include <QFileDialog>
 #include <QMessageBox>
-
+#include <QPainter>
 
 
 namespace Ui {
@@ -19,11 +19,11 @@ class optionDialog : public QDialog
 public:
     explicit optionDialog(QWidget *parent = 0);
     ~optionDialog();
-    void setFontColorItemData(int index, const QVariant &value, int role);
+    void setFontColorItemData(int index, QColor color, const QVariant &value, int role);
     void setFontColorDisabled(bool disable);
     void setFontColorCurrentIndex(int index);
     int  getFontColorCurrentIndex(void);
-    void setBgColorItemData(int index, const QVariant &value, int role);
+    void setBgColorItemData(int index, QColor color, const QVariant &value, int role);
     void setBgColorDisabled(bool disable);
     void setBgColorCurrentIndex(int index);
     int  getBgColorCurrentIndex(void);
@@ -46,6 +46,7 @@ private slots:
 
 private:
     Ui::optionDialog *ui;
+    QString colorToString(QColor color);
 };
 
 #endif // OPTIONDIALOG_H

@@ -2,7 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "qextserialport.h"
+//#include "qextserialport.h"
+#include <QtSerialPort/QSerialPort>
 #include <QTimer>
 #include <QFile>
 
@@ -27,7 +28,7 @@ class MainWindow : public QMainWindow,
 
 public:
     MainWindow(QWidget *parent = 0);
-    //~MainWindow();
+    ~MainWindow();
     QStringList getBaudRateStrings(void);
 
 public slots:
@@ -39,6 +40,7 @@ private slots:
     void configComm(void);
     void pollSerial(void);
     void onDataAvailable(void);
+    void readData(void);
     void onReadFinished(void);
     void onDsrChanged(bool status);
     void helpAbout(void);
@@ -53,11 +55,16 @@ private slots:
     void saveOptionSetting(void);
     void applyOptionSetting(void);
     void showInputHistory(void);
+    void writeData(const QByteArray &data);
 
 private:
+    void initActionsConnections(void);
     bool eventFilter(QObject *obj, QEvent *event);
     void closeEvent (QCloseEvent *event);
-    QextSerialPort *port;
+    //TODO: this class may not read all data from console at once??
+    // use QSerialPort *serial; from Qt5
+    QSerialPort *serial;
+    //QextSerialPort *serial;
     aboutDialog *aboutDlg;
     commDialog *commDlg;
     optionDialog *optionDlg;
@@ -70,7 +77,7 @@ private:
     QWidgetList sbList;
 
     // Setting for window
-    QRect geometry;
+    QRect mGeometry;
     // Settings from comm file
     int baudNdx;
     bool hwFlow;
