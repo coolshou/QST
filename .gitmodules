@@ -4,3 +4,7 @@
 [submodule "singleapplication"]
 	path = singleapplication
 	url = https://github.com/itay-grudev/SingleApplication.git
+[submodule "qtserialport"]
+	path = qtserialport
+	url = git://code.qt.io/qt/qtserialport.git
+	branch = 5.7
