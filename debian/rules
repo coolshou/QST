@@ -16,7 +16,13 @@
 
 %:
 	dh $@ 
-
+	
+# get version
+VER := $(shell grep "^VERSION" $(CURDIR)/qst.pro )
+VERSION := $(shell echo '$(VER)'  | awk '{print $3}')
+#VERSION := $(shell grep "^VERSION" $(CURDIR)/qst.pro| sed -n -e 's/^Version: //p')
+#$(shell echo "VERSION=$(VERSION)")
+#update version to changelog
 
 # dh_make generated override targets
 # This is example for Cmake (See https://bugs.debian.org/641051 )

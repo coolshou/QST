@@ -50,8 +50,11 @@ VERSION = 1.1.0
 unix:{
     DEFINES += _TTY_POSIX_
     #for serialport-lib.pri not found private/qringbuffer_p.h issue
-    INCLUDEPATH += /usr/include/x86_64-linux-gnu/qt5/QtCore/5.5.1/QtCore/
+    INCLUDEPATH += /usr/include/x86_64-linux-gnu/qt5/QtCore/$${QT_VERSION}/QtCore/
+    #INCLUDEPATH += $${QMAKE_INCDIR}/QtCore/$${QT_VERSION}/QtCore/
+
 }
+
 win32:{
     DEFINES += _TTY_WIN_
     RC_ICONS += images/qst.ico
