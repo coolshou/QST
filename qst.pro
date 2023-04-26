@@ -2,6 +2,7 @@
 TEMPLATE = app
 TARGET = qst
 
+
 include(singleapplication/singleapplication.pri)
 DEFINES += QAPPLICATION_CLASS=QApplication
 # include(qextserialport/src/qextserialport.pri)
@@ -18,31 +19,37 @@ greaterThan(QT_MAJOR_VERSION, 4) {
     QT       += serialport
 }
 
-SOURCES += main.cpp \
-    mainwindow.cpp \
-    led.cpp \  
-    aboutdialog.cpp \
-    commdialog.cpp \
-    optiondialog.cpp \
-    consoleeditor.cpp \
-    inputhistorydialog.cpp
-    
-HEADERS += mainwindow.h \
-    led.h \ 
-    const.h \
-    aboutdialog.h \
-    commdialog.h \
-    optiondialog.h \
-    consoleeditor.h \
-    inputhistorydialog.h
-    
-FORMS += mainwindow.ui \
-    aboutdialog.ui \
-    commdialog.ui \
-    optiondialog.ui \
-    inputhistorydialog.ui
-    
-OTHER_FILES += 
+INCLUDEPATH += \
+   src
+
+SOURCES += \
+    src/main.cpp \
+    src/mainwindow.cpp \
+    src/led.cpp \
+    src/aboutdialog.cpp \
+    src/commdialog.cpp \
+    src/optiondialog.cpp \
+    src/consoleeditor.cpp \
+    src/inputhistorydialog.cpp
+
+HEADERS += \
+    src/mainwindow.h \
+    src/led.h \
+    src/const.h \
+    src/aboutdialog.h \
+    src/commdialog.h \
+    src/optiondialog.h \
+    src/consoleeditor.h \
+    src/inputhistorydialog.h
+
+FORMS += \
+    src/mainwindow.ui \
+    src/aboutdialog.ui \
+    src/commdialog.ui \
+    src/optiondialog.ui \
+    src/inputhistorydialog.ui
+
+OTHER_FILES +=
 
 RESOURCES += qst.qrc
 
@@ -78,7 +85,7 @@ pics=[
     hint=pics
     files=images/*
     path=/usr/share/qst/pixmaps
-]   
+]
 # Package information (used for qbuild packages)
 pkg=[
     name=qst
